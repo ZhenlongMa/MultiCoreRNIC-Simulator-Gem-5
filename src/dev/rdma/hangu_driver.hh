@@ -190,10 +190,10 @@ class HanGuDriver final : public EmulatedDriver {
     int qpNum;
     /* -------QoS Group resources {end}------- */
 
-    /* ------------TQ resources {begin}---------- */
-    RescMeta tqMeta;
-    void allocTq();
-    /* ------------TQ resources {end}------------ */
+    // /* ------------TQ resources {begin}---------- */
+    // RescMeta tqMeta;
+    // void allocTq();
+    // /* ------------TQ resources {end}------------ */
 
     /* -------mailbox {begin} ------- */
 

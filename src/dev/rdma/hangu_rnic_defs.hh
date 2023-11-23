@@ -781,6 +781,21 @@ struct GroupInfo
 //     uint16_t granularity[MAX_GROUP_NUM];
 // };
 
+struct WqeBufferUnit
+{
+    TxDesc desc;
+    uint16_t next;
+    uint16_t prev;
+}
+typedef std::shared_ptr<WqeBufferUnit> WqeBufferUnitPtr;
+
+struct WqeBufferMetadata
+{
+    uint16_t head;
+    uint16_t tail;
+    uint8_t valid;
+}
+typedef std::shared_ptr<WqeBufferMetadata> WqeBufferMetadataPtr;
 
 } // namespace HanGuRnicDef
 

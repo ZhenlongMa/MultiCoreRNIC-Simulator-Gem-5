@@ -362,6 +362,21 @@ class HanGuRnic : public RdmaNic {
         DescScheduler descScheduler;
         /* -------------------WQE Scheduler Relevant{end}------------------------ */
 
+        /* -------------------WQE Buffer Manage {begin}-------------------------------- */
+        class WqeBufferManage
+        {
+            private:
+                HanGuRnic *rNic;
+            public:
+                std::string _name;
+                std::queue<uint16_t> vacantAddr;
+                std::unordered_map<uint32_t, WqeBufferUnitPtr> wqeBuffer;
+                std::unordered_map<uint32_t, WqeBufferMetadataPtr> wqeBufferMetadataTable;
+                int descBufferCap;
+        };
+        WqeBufferManage wqeBuffMng;
+        /* -------------------WQE Buffer Manage {end}---------------------------------- */
+
         /* -------------------WQE Buffer Relevant{begin}---------------------- */
         // class DescBuffer{
         //     private:

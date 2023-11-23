@@ -55,6 +55,7 @@ HanGuRnic::HanGuRnic(const Params *p)
     mboxEvent([this]{ mboxFetchCpl();    }, name()),
     rdmaEngine  (this, name() + ".RdmaEngine", p->reorder_cap),
     descScheduler(this, name() + ".DescScheduler"),
+    wqeBuffMng(this, name() + ".wqeBuffMng", 1024),
     mrRescModule(this, name() + ".MrRescModule", p->mpt_cache_num, p->mtt_cache_num),
     cqcModule   (this, name() + ".CqcModule", p->cqc_cache_num),
     qpcModule   (this, name() + ".QpcModule", p->qpc_cache_cap, p->reorder_cap),
@@ -328,12 +329,8 @@ HanGuRnic::mboxFetchCpl () {
                 qpcReq->txQpcReq->srcQpn,
                 qpcReq->txQpcReq->groupID,
                 qpcReq->txQpcReq->qpType);
-            // delete this line later
-            // HANGU_PRINT(CcuEngine, "write QPC, qpn: %d, indicator: %d, weight: %d\n", 
-            //     qpcReq->txQpcReq->srcQpn, qpcReq->txQpcReq->indicator, qpcReq->txQpcReq->perfWeight);
-            // assert(qpcReq->txQpcReq->indicator == BW_QP);
-            // descScheduler.qpStatusTable.emplace(qpStatus->qpn, qpStatus);
             createQue.push(qpStatus);
+            wqeBuffMng.wqeBufferMetadataTable[qpcReq->txQpcReq->srcQpn].valid = 1;
             if (!descScheduler.createQpStatusEvent.scheduled())
             {
                 schedule(descScheduler.createQpStatusEvent, curTick() + clockPeriod());

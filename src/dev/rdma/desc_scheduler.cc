@@ -245,8 +245,13 @@ void HanGuRnic::DescScheduler::wqePrefetch()
                 wqeFetchInfoQue.push(wqeFetchInfoPair);
                 HANGU_PRINT(DescScheduler, "WQE req sent! QPN: %d, WQE num: %d, req size: %d, tail ptr: %d, WQE fetch info queue size: %d\n", 
                     qpStatus->qpn, descNum, descNum * sizeof(TxDesc), qpStatus->tail_ptr, wqeFetchInfoQue.size());
-                if (!rNic->mrRescModule.transReqEvent.scheduled()) { /* Schedule MrRescModule.transReqProcessing */
-                    rNic->schedule(rNic->mrRescModule.transReqEvent, curTick() + rNic->clockPeriod());
+                // if (!rNic->mrRescModule.transReqEvent.scheduled()) /* Schedule MrRescModule.transReqProcessing */
+                // { 
+                //     rNic->schedule(rNic->mrRescModule.transReqEvent, curTick() + rNic->clockPeriod());
+                // }
+                if (!rNic->wqeBuffMng.)
+                {
+                    rNic->schedule.
                 }
             }
             else 
