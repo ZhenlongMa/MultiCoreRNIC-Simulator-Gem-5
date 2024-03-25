@@ -3,9 +3,9 @@ tests before submitting a patch is *incredibly important* so unexpected bugs
 don't creep into gem5.
 
 gem5's testing infrastructure has the following goals:
- * Simple for *all* users to run
- * Fast execution in the simple case
- * High coverage of gem5 code
+* Simple for *all* users to run
+* Fast execution in the simple case
+* High coverage of gem5 code
 
 # Running unit tests
 
@@ -77,7 +77,6 @@ Or, if you want to just run X86 tests with the `gem5.opt` binary:
 ```shell
 ./main.py run --length quick --variant opt --isa X86
 ```
-
 
 To view all of the available tags, use
 
@@ -191,7 +190,6 @@ test library executes each python file it finds searching for tests. It's okay
 if the file causes an exception. This means there are no tests in that file
 (e.g., it's not a new-style test).
 
-
 ## Binary test applications
 
 The code for some test binaries that are run in the gem5 guest during
@@ -228,7 +226,6 @@ modify the binaries. *If you need to modify the binaries for updating a test or
 adding a new test and you don't have access to the gem5 server, contact a
 maintainer (see MAINTAINERS).*
 
-
 ## Running Tests in Parallel
 
 Whimsy has support for parallel testing baked in. This system supports
@@ -238,4 +235,3 @@ suites in parallel, supply the `-t <number-tests>` flag to the run command.
 For example, to run up to three test suites at the same time::
 
     ./main.py run --skip-build -t 3
-
