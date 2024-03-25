@@ -78,6 +78,7 @@ class HanGuRnic : public RdmaNic {
         std::queue<MrReqRspPtr>descReqFifo; // tx(DFU) & rx(RPU) descriptor req post to this fifo.
         std::queue<TxDescPtr> txdescRspFifo; /* Store descriptor, **not list** */
         std::queue<RxDescPtr> rxdescRspFifo;
+        std::queue<TxDescPtr> txdescUpdateFifo;
         // std::queue<MrReqRspPtr> txdescRspFifo;
         // std::queue<MrReqRspPtr> rxdescRspFifo;
 
@@ -351,7 +352,7 @@ class HanGuRnic : public RdmaNic {
                 EventFunctionWrapper updateEvent;
                 EventFunctionWrapper createQpStatusEvent;
                 EventFunctionWrapper qpcRspEvent;
-                EventFunctionWrapper wqeRspEvent;
+                EventFunctionWrapper wqeProcEvent;
                 std::unordered_map<uint8_t, uint16_t> groupTable;
                 std::unordered_map<uint32_t, QPStatusPtr> qpStatusTable;
                 std::string name()
@@ -373,6 +374,8 @@ class HanGuRnic : public RdmaNic {
                 std::unordered_map<uint32_t, WqeBufferUnitPtr> wqeBuffer;
                 std::unordered_map<uint32_t, WqeBufferMetadataPtr> wqeBufferMetadataTable;
                 int descBufferCap;
+                EventFunctionWrapper wqeReadReqProcessEvent;
+                EventFunctionWrapper wqeReadRspProcessEvent;
         };
         WqeBufferManage wqeBuffMng;
         /* -------------------WQE Buffer Manage {end}---------------------------------- */

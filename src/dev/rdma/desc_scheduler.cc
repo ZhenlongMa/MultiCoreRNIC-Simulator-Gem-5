@@ -19,7 +19,7 @@ HanGuRnic::DescScheduler::DescScheduler(HanGuRnic *rNic, const std::string name)
     updateEvent([this]{rxUpdate();}, name),
     createQpStatusEvent([this]{createQpStatus();}, name),
     qpcRspEvent([this]{qpcRspProc();}, name),
-    wqeRspEvent([this]{wqeProc();}, name)
+    wqeProcEvent([this]{wqeProc();}, name)
 {
     // HANGU_PRINT(DescScheduler, "init\n");
 }
@@ -237,21 +237,21 @@ void HanGuRnic::DescScheduler::wqePrefetch()
             }
             if (descNum != 0)
             {
-                MrReqRspPtr descReq = make_shared<MrReqRsp>(DMA_TYPE_RREQ, MR_RCHNL_TX_DESC,
-                    qpStatus->key, descNum * sizeof(TxDesc), qpStatus->tail_ptr * sizeof(TxDesc) % sqSize);
-                descReq->txDescRsp = new TxDesc[descNum];
-                rNic->descReqFifo.push(descReq);
+                // MrReqRspPtr descReq = make_shared<MrReqRsp>(DMA_TYPE_RREQ, MR_RCHNL_TX_DESC,
+                //     qpStatus->key, descNum * sizeof(TxDesc), qpStatus->tail_ptr * sizeof(TxDesc) % sqSize);
+                // descReq->txDescRsp = new TxDesc[descNum];
+                // rNic->descFetchFifo.push(descReq);
                 std::pair<uint32_t, QPStatusPtr> wqeFetchInfoPair(descNum, qpStatus);
                 wqeFetchInfoQue.push(wqeFetchInfoPair);
                 HANGU_PRINT(DescScheduler, "WQE req sent! QPN: %d, WQE num: %d, req size: %d, tail ptr: %d, WQE fetch info queue size: %d\n", 
                     qpStatus->qpn, descNum, descNum * sizeof(TxDesc), qpStatus->tail_ptr, wqeFetchInfoQue.size());
-                // if (!rNic->mrRescModule.transReqEvent.scheduled()) /* Schedule MrRescModule.transReqProcessing */
-                // { 
-                //     rNic->schedule(rNic->mrRescModule.transReqEvent, curTick() + rNic->clockPeriod());
-                // }
-                if (!rNic->wqeBuffMng.)
+
+                assert(0);
+                if (!rNic->mrRescModule.transReqEvent.scheduled()) { /* Schedule MrRescModule.transReqProcessing */
+                    rNic->schedule(rNic->mrRescModule.transReqEvent, curTick() + rNic->clockPeriod());
+                if (!rNic->wqeBuffMng.wqeReadReqProcessEvent.scheduled())
                 {
-                    rNic->schedule.
+                    rNic->schedule(wqeReadReqProcessEvent, curTick() + rNic->clockPeriod());
                 }
             }
             else 
@@ -282,6 +282,11 @@ void HanGuRnic::DescScheduler::wqeProc()
     uint32_t descNum = wqeFetchInfoQue.front().first;
     QPStatusPtr qpStatus = wqeFetchInfoQue.front().second;
     wqeFetchInfoQue.pop();
+
+
+    if (wqeHitQue)
+    else if (wqeMissQue)
+
     TxDescPtr desc;
     uint8_t subDescNum = 0;
 
@@ -297,9 +302,9 @@ void HanGuRnic::DescScheduler::wqeProc()
         {
             rNic->txdescRspFifo.pop();
         }
-        if (rNic->txdescRspFifo.size() && !wqeRspEvent.scheduled())
+        if (rNic->txdescRspFifo.size() && !wqeProcEvent.scheduled())
         {
-            rNic->schedule(wqeRspEvent, curTick() + rNic->clockPeriod());
+            rNic->schedule(wqeProcEvent, curTick() + rNic->clockPeriod());
         }
         return;
     }
@@ -472,9 +477,9 @@ void HanGuRnic::DescScheduler::wqeProc()
     {
         rNic->schedule(launchWqeEvent, curTick() + rNic->clockPeriod());
     }
-    if (rNic->txdescRspFifo.size() && !wqeRspEvent.scheduled())
+    if (rNic->txdescRspFifo.size() && !wqeProcEvent.scheduled())
     {
-        rNic->schedule(wqeRspEvent, curTick() + rNic->clockPeriod());
+        rNic->schedule(wqeProcEvent, curTick() + rNic->clockPeriod());
     }
 }
 

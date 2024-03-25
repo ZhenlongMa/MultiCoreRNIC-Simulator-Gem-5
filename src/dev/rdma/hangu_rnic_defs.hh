@@ -374,7 +374,8 @@ struct MrReqRsp {
 
     uint8_t  type  ; /* 1 - wreq; 2 - rreq, 3 - rrsp; */
     uint8_t  chnl  ; /* 1 - wreq TX cq; 2 - wreq RX cq; 3 - wreq TX data; 4 - wreq RX data;
-                      * 5 - rreq TX Desc; 6 - rreq RX Desc; 7 - rreq TX Data; 8 - rreq RX Data */
+                      * 5 - rreq TX Desc; 6 - rreq RX Desc; 7 - rreq TX Data; 8 - rreq RX Data 
+                      * 9 - rreq TX Desc update */
     uint32_t lkey  ;
     uint32_t length; /* in Bytes */
     uint32_t offset; /* Accessed VAddr, used to compare with vaddr in MPT, 
@@ -409,6 +410,7 @@ const uint8_t MR_RCHNL_TX_DESC = 0x05;
 const uint8_t MR_RCHNL_RX_DESC = 0x06;
 const uint8_t MR_RCHNL_TX_DATA = 0x07;
 const uint8_t MR_RCHNL_RX_DATA = 0x08;
+const uint8_t MT_RCHNL_TX_DESC_UPDATE = 0x09;
 
 
 struct CxtReqRsp {
@@ -746,6 +748,13 @@ struct QPStatusItem
     uint32_t wnd_start; // start offset in the current message
     uint32_t fetch_offset; // offset pointer in the current message
     uint32_t wnd_end;
+    enum process_state
+    {
+        PENDING,
+        WAITING_FETCH,
+        WAITING_UPDATE,
+        PROCESSING
+    } procState;
     // uint32_t wnd_fetch;
     // uint32_t current_msg_offset;
     uint32_t key;
@@ -783,6 +792,12 @@ struct GroupInfo
 
 struct WqeBufferUnit
 {
+    WqeBufferUnit(TxDesc desc = null, uint16_t prev = 0, uint16_t next = 0)
+    {
+        this->desc = desc;
+        this->prev = prev;
+        this->next = next;
+    }
     TxDesc desc;
     uint16_t next;
     uint16_t prev;
@@ -794,6 +809,8 @@ struct WqeBufferMetadata
     uint16_t head;
     uint16_t tail;
     uint8_t valid;
+    uint8_t lock;
+    uint8_t descNum;
 }
 typedef std::shared_ptr<WqeBufferMetadata> WqeBufferMetadataPtr;
 

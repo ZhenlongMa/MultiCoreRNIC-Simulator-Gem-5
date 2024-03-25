@@ -104,6 +104,7 @@ HanGuRnic::MrRescModule::dmaReqProcess (uint64_t pAddr, MrReqRspPtr mrReq, uint3
         switch (mrReq->chnl) {
           case MR_RCHNL_TX_DESC:
           case MR_RCHNL_RX_DESC:
+          case MR_RCHNL_TX_DESC_UPDATE:
             /* Post desc dma req to DMA engine */
             dmaRdReq = make_shared<DmaReq>(rnic->pciToDma(pAddr), mrReq->length, 
                     &dmaRrspEvent, mrReq->data + offset, 0); /* last parameter is useless here */
@@ -181,6 +182,7 @@ HanGuRnic::MrRescModule::dmaRrspProcessing() {
     {
         case MR_RCHNL_TX_DESC:
         case MR_RCHNL_RX_DESC:
+        case MR_RCHNL_TX_DESC_UPDATE:
             onFlyDescDmaRdReqNum--;
             HANGU_PRINT(MrResc, "descriptor DMA request received by MR module! on-fly count: %d\n", onFlyDescDmaRdReqNum);
             break;
@@ -199,8 +201,8 @@ HanGuRnic::MrRescModule::dmaRrspProcessing() {
         switch (tptRsp->chnl) {
             case MR_RCHNL_TX_DESC:
                 // event = &rnic->rdmaEngine.dduEvent;
-                event = &rnic->descScheduler.wqeRspEvent;
-
+                // event = &rnic->descScheduler.wqeProcEvent;
+                event = &rnic->wqeBuffMng.wqeReadRspProcessEvent;
                 for (uint32_t i = 0; (i * sizeof(TxDesc)) < tptRsp->length; ++i) {
                     txDesc = make_shared<TxDesc>(tptRsp->txDescRsp + i);
                     HANGU_PRINT(MrResc, "txDesc length: %d, lVaddr: 0x%x, opcode: %d\n", txDesc->len, txDesc->lVaddr, txDesc->opcode);
@@ -209,15 +211,21 @@ HanGuRnic::MrRescModule::dmaRrspProcessing() {
                     assert(txDesc->opcode != 0);
                     rnic->txdescRspFifo.push(txDesc);
                 }
-                // assert((tptRsp->txDescRsp->len != 0) && (tptRsp->txDescRsp->lVaddr != 0));
-                // rnic->txdescRspFifo.push(tptRsp->txDescRsp);
-                // rnic->txdescRspFifo.push(tptRsp);
-
                 onFlyDescMrRdReqNum--;
-                HANGU_PRINT(MrResc, "MR module receives a complete desc MR response, on-fly request count: %d\n", onFlyDescMrRdReqNum);
                 assert(onFlyDescMrRdReqNum >= 0);
-                HANGU_PRINT(MrResc, " MrRescModule.dmaRrspProcessing: size is %d, desc total len is %d!\n", 
-                        rnic->txdescRspFifo.size(), tptRsp->length);
+                break;
+            case MR_RCHNL_TX_DESC_UPDATE:
+                event = &rnic->wqeBuffMng.wqeReadRspProcessEvent;
+                for (uint32_t i = 0; (i * sizeof(TxDesc)) < tptRsp->length; ++i) {
+                    txDesc = make_shared<TxDesc>(tptRsp->txDescRsp + i);
+                    HANGU_PRINT(MrResc, "txDesc length: %d, lVaddr: 0x%x, opcode: %d\n", txDesc->len, txDesc->lVaddr, txDesc->opcode);
+                    assert(txDesc->len != 0);
+                    assert(txDesc->lVaddr != 0);
+                    assert(txDesc->opcode != 0);
+                    rnic->txdescUpdateFifo.push(txDesc);
+                }
+                onFlyDescMrRdReqNum--;
+                assert(onFlyDescMrRdReqNum >= 0);
                 break;
             case MR_RCHNL_RX_DESC:
                 event = &rnic->rdmaEngine.rcvRpuEvent;
@@ -320,7 +328,7 @@ HanGuRnic::MrRescModule::mptRspProcessing() {
     HANGU_PRINT(MrResc, " MrRescModule.mptRspProcessing: reqPkt->offset 0x%x, mptResc->startVAddr 0x%x, mptResc->mttSeg 0x%x, mttIdx 0x%x, mttNum: %d\n", 
         reqPkt->offset, mptResc->startVAddr, mptResc->mttSeg, mttIdx, reqPkt->mttNum);
 
-    if (reqPkt->chnl == MR_RCHNL_TX_DESC)
+    if (reqPkt->chnl == MR_RCHNL_TX_DESC || reqPkt->chnl == MR_RCHNL_TX_DESC_UPDATE)
     {
         HANGU_PRINT(MrResc, "tx desc MR request! mttNum: %d\n", reqPkt->mttNum);
         // The size of the Work Queue is up to one page.
