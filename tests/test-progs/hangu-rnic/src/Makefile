@@ -1,5 +1,3 @@
-
-
 all: server client test
 
 test: libhgrnic.c test.c
